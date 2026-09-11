@@ -1,0 +1,18 @@
+Step By Step of AutoSync
+
+1. Login
+- On ILogin.cs, you will try to make a login attemp on the system.
+- First, type the User ID and then the password;
+- The system verifies if you are registered in the system as an Admin, Operator or Driver;
+- Each user type has its own tools access;
+- The examples of users are stored at Users.json (AutoSync/Data/Users.json);
+- Once logged in, you can access the tools your role allows to;
+
+2. Admin
+- [...]
+
+3. Operator
+- [...]
+
+4 Driver
+- [...]

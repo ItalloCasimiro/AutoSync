@@ -1,0 +1,20 @@
+{
+  "Admins": [
+    {
+      "userID": "Joseph",
+      "password": "J0S3P4"
+    }
+  ],
+  "Operators": [
+    {
+      "userID": "Rose",
+      "password": "R0S3"
+    }
+  ],
+  "Drivers": [
+    {
+      "userID": "Harry",
+      "password": "H4RR1"
+    }
+  ]
+}
