@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AutoSync.CLI;
+using AutoSync.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 
 namespace AutoSync.Interfaces
@@ -12,34 +15,31 @@ namespace AutoSync.Interfaces
         public string password { get; set; } = string.Empty;
     }
 
-    // JSON User types Data Structure
-    public class UserData
-    {
-        public List<User> Admins { get; set; } = new();
-        public List<User> Operators { get; set; } = new();
-        public List<User> Drivers { get; set; } = new();
-    }
-
     public class ILogin
     {
+        //Path to the JSON with all the Users Examples (AutoSync/Data/Users.json)
         private static string usersListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Users.json");
 
         public static AutoSync.UserData NewLogin()
         {
-            Console.WriteLine("Welcome to AutoSync, Who are You?");
+            Console.Write("Welcome to ");
+            CLISystem.ShowStylizedMessage(false, "AutoSync", ConsoleColor.Black, ConsoleColor.Blue);
+            Console.WriteLine(", Who are You?");
+
+            CLISystem.SkipRow();
 
             Console.Write("Insert Your User ID: ");
             string userID = Console.ReadLine() ?? "";
             Console.Write($"Walcome, {userID}! Insert your password: ");
-            string password = Console.ReadLine() ?? "";
+            string password = ReadHiddenLine() ?? "";
 
+            //User that stores the ID and password typed by the user
             User userLoginAtempt = new User() { userID = userID, password = password};
 
-            UserData usersList = LoadUsers();
-
-            bool isAdmin = usersList.Admins.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
-            bool isOperator = usersList.Operators.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
-            bool isDriver = usersList.Drivers.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
+            //Verifies if the login informations match with some role
+            bool isAdmin = Database.UsersList.Admins.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
+            bool isOperator = Database.UsersList.Operators.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
+            bool isDriver = Database.UsersList.Drivers.Any(u => u.userID == userLoginAtempt.userID && u.password == userLoginAtempt.password);
 
             if (isAdmin)
             {
@@ -56,16 +56,38 @@ namespace AutoSync.Interfaces
             return new AutoSync.UserData() { userID = "", userRole = UserRoles.None };
         }
 
-        public static UserData LoadUsers()
+        private static string ReadHiddenLine()
         {
-            if (!File.Exists(usersListPath))
+            StringBuilder password = new StringBuilder();
+
+            while (true)
             {
-                Console.WriteLine("Users Database Not Found...");
-                return new UserData();
+                ConsoleKeyInfo key = Console.ReadKey(intercept: true); //Do not display the typed info
+
+                //If the user press ENTER, submit the password
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    CLISystem.SkipRow();
+                    break;
+                }
+
+                //Erase a character
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (password.Length > 0)
+                    {
+                        password.Remove(password.Length - 1, 1);
+                        Console.Write("\b \b"); // back the cursor and erase the character
+                    }
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    password.Append(key.KeyChar);
+                    Console.Write('*');
+                }
             }
 
-            var jsonString = File.ReadAllText(usersListPath);
-            return JsonSerializer.Deserialize<UserData>(jsonString) ?? new UserData();
+            return password.ToString();
         }
     }
 }

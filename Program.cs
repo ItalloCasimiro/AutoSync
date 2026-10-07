@@ -1,5 +1,8 @@
 ﻿using System;
 using AutoSync.Interfaces;
+using AutoSync.Interfaces.Menus;
+using AutoSync.CLI;
+using AutoSync.Data;
 
 namespace AutoSync
 { 
@@ -13,20 +16,51 @@ namespace AutoSync
 
     public class Program
     {
-        public static void Main()
+        public static async Task Main()
         {
-            UserData userData = ILogin.NewLogin();
+            Database.LoadUsers();
 
-            if (userData.userRole == UserRoles.None) {
-                Console.WriteLine("User Not Found...");
-                return;
-            }
+            int loginAttempts = 3;
 
-            Console.WriteLine($"Welcome again, {userData.userID}!");
+            //This function makes all the login process
+            loginAttempt:
+                UserData userData = ILogin.NewLogin();
+
+                if (userData.userRole == UserRoles.None) {
+                    CLISystem.SkipRow();
+                    CLISystem.ShowStylizedMessage(true, "User Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                    loginAttempts -= 1;
+
+                    if (loginAttempts == 0)
+                    {
+                        CLISystem.SkipRow();
+                        CLISystem.ShowStylizedMessage(true, "Max login attempts reached, try again later.", ConsoleColor.Black, ConsoleColor.Red);
+                        return;
+                    }
+
+                    if (CLISystem.YNQuestion("Want to", "try again"))
+                    {
+                        Console.Clear();
+                        CLISystem.ShowStylizedMessage(true, $"Remaining login attempts: {loginAttempts}", ConsoleColor.Black, ConsoleColor.Red);
+                        CLISystem.SkipRow();
+
+                        goto loginAttempt;
+                    }
+                    else { return; }
+                }
+
+            Database.RegistryAccessLog(userData.userID, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+
+            CLISystem.SkipRow();
+            Console.Write($"Welcome again, ");
+            CLISystem.ShowStylizedMessage(false, $"{userData.userID}", ConsoleColor.Black, ConsoleColor.Yellow);
+            Console.WriteLine("!");
 
             switch (userData.userRole)
             {
                 case UserRoles.Admin:
+                    CLISystem.SkipRow();
+                    AdminMenu.Initialize();
                     break;
                 case UserRoles.Operator:
                     break;
