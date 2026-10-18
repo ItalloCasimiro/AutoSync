@@ -3,6 +3,7 @@ using AutoSync.Interfaces;
 using AutoSync.Interfaces.Menus;
 using AutoSync.CLI;
 using AutoSync.Data;
+using AutoSync.Services;
 
 namespace AutoSync
 { 
@@ -16,6 +17,8 @@ namespace AutoSync
 
     public class Program
     {
+        public static UserData loggedUser;
+
         public static async Task Main()
         {
             Database.LoadUsers();
@@ -24,9 +27,9 @@ namespace AutoSync
 
             //This function makes all the login process
             loginAttempt:
-                UserData userData = ILogin.NewLogin();
+                loggedUser = ILogin.NewLogin();
 
-                if (userData.userRole == UserRoles.None) {
+                if (loggedUser.userRole == UserRoles.None) {
                     CLISystem.SkipRow();
                     CLISystem.ShowStylizedMessage(true, "User Not Found...", ConsoleColor.Black, ConsoleColor.Red);
                     loginAttempts -= 1;
@@ -46,17 +49,16 @@ namespace AutoSync
 
                         goto loginAttempt;
                     }
-                    else { return; }
                 }
 
-            Database.RegistryAccessLog(userData.userID, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+            Database.RegistryAccessLog(loggedUser.userID, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
 
             CLISystem.SkipRow();
             Console.Write($"Welcome again, ");
-            CLISystem.ShowStylizedMessage(false, $"{userData.userID}", ConsoleColor.Black, ConsoleColor.Yellow);
+            CLISystem.ShowStylizedMessage(false, $"{loggedUser.userID}", ConsoleColor.Black, ConsoleColor.Yellow);
             Console.WriteLine("!");
 
-            switch (userData.userRole)
+            switch (loggedUser.userRole)
             {
                 case UserRoles.Admin:
                     CLISystem.SkipRow();
@@ -65,6 +67,8 @@ namespace AutoSync
                 case UserRoles.Operator:
                     break;
                 case UserRoles.Driver:
+                    CLISystem.SkipRow();
+                    DriverMenu.Initialize();
                     break;
             }
         }

@@ -1,0 +1,12 @@
+[
+    {
+        "VehicleInfo": {
+            "ownerName": "Harry",
+            "licensePlate": "HTYL098",
+            "model": "BMW",
+            "year": 2018,
+            "capacity": 250.0,
+            "type": 0
+        }
+    }
+]

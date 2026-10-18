@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 
 namespace AutoSync.Interfaces
-{
+{ 
     // Data for each User
     public class User
     {

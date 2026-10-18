@@ -1,5 +1,6 @@
 ﻿using AutoSync.CLI;
 using AutoSync.Data;
+using AutoSync.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,27 +18,7 @@ namespace AutoSync.Interfaces.Menus
 
         public static void Initialize()
         {
-            CLISystem.ShowStylizedMessage(true, "What are You Planning to do Today?", ConsoleColor.Yellow, ConsoleColor.Black);
-            CLISystem.SkipRow();
-
-            foreach(string actionName in actions.Keys)
-            {
-                Console.WriteLine(actionName);
-            }
-
-            string actionInput = Console.ReadLine() ?? "";
-
-            if (int.TryParse(actionInput, out int actionIDX))
-            {
-                if (actions.Values.ToList().Count >= actionIDX && actionIDX > 0)
-                {
-                    Action action = actions.Values.ToList()[actionIDX - 1];
-                    if (action != null)
-                    {
-                        action.Invoke();
-                    }
-                }
-            }
+            CLISystem.OptionsList("What are You Planning to do Today?", actions);
         }
 
         public static void AddNewDriver()
@@ -95,6 +76,9 @@ namespace AutoSync.Interfaces.Menus
                 return;
             }
 
+            CLISystem.SkipRow();
+            CNH newDriversCNH = CNHRegistrationService.RegisterCNH(newDriverID);
+
             if (!CLISystem.YNQuestion("Are you sure you want to", "add a new Driver")) {
                 CLISystem.SkipRow();
                 CLISystem.ShowStylizedMessage(true, $"Registration action canceled.", ConsoleColor.Black, ConsoleColor.Yellow);
@@ -124,6 +108,8 @@ namespace AutoSync.Interfaces.Menus
             string updatedJson = JsonSerializer.Serialize(usersDatabase, options);
 
             File.WriteAllText(usersListPath, updatedJson);
+
+            Database.RegistryNewDriver(newDriversCNH.FullName, newDriversCNH);
 
             CLISystem.SkipRow();
             CLISystem.ShowStylizedMessage(true, $"{newDriverID} added successfully to the company's list of drivers.", ConsoleColor.Black, ConsoleColor.Green);
