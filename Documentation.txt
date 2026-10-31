@@ -1,18 +1,30 @@
 Step By Step of AutoSync
 
 1. Login
-- On ILogin.cs, you will try to make a login attemp on the system.
+- On ILogin.cs, you will try to make a login attemp on the system;
 - First, type the User ID and then the password;
+- If you insert any wrong information, you will have 3 chances to log in before the system block;
 - The system verifies if you are registered in the system as an Admin, Operator or Driver;
 - Each user type has its own tools access;
 - The examples of users are stored at Users.json (AutoSync/Data/Users.json);
+- After log in, a Access Log will be registered at AutoSync/Data/AccessLogs.json with the User ID and Date + Time;
 - Once logged in, you can access the tools your role allows to;
 
 2. Admin
-- [...]
+- As an Admin, the system will load the Admin Menu (AutoSync/Interfaces/Menus/AdminMenu.cs), where you can:
+  1. Add a new Driver to the company;
 
 3. Operator
-- [...]
+- As an Operator, the system will load the Operator Menu (AutoSync/Interfaces/Menus/OperatorMenu.cs), where you can:
 
 4 Driver
-- [...]
+- As a Driver, the system will load the Driver Menu (AutoSync/Interfaces/Menus/DriverMenu.cs), where you can:
+
+5. Database
+- At AutoSync/Data/Database.cs you can manage all your data, including list of users [...]
+
+6. CLI System
+- At AutoSync/CLI/CLISystem.cs you can call CLI methods to make something on the terminal, like:
+  - Show a stylized message (With background and foreground color);
+  - Create a Y/N question (Yes or No);
+  - Skip a Row;

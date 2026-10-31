@@ -85,7 +85,7 @@ namespace AutoSync.CLI
             if (!string.IsNullOrEmpty(title))
             {
                 int leftSpace = (innerSpace - title.Length) / 2;
-                int rightSpace = innerSpace - title.Length - leftSpace; // corrige o caso ímpar
+                int rightSpace = innerSpace - title.Length - leftSpace;
 
                 Console.WriteLine("│" + new string(' ', leftSpace) + title + new string(' ', rightSpace) + "│");
                 Console.WriteLine("├" + new string('─', innerSpace) + "┤");
@@ -94,13 +94,13 @@ namespace AutoSync.CLI
             // Content aligned to the left
             foreach (string contentLine in lines)
             {
-                string text = " " + contentLine;
-                if (text.Length > innerSpace)
+                for (int i = 0; i < contentLine.Length; i += innerSpace - 1)
                 {
-                    text = text.Substring(0, innerSpace);
-                }   
+                    int length = Math.Min(innerSpace - 1, contentLine.Length - i);
+                    string text = " " + contentLine.Substring(i, length);
 
-                Console.WriteLine("│" + text.PadRight(innerSpace) + "│");
+                    Console.WriteLine("│" + text.PadRight(innerSpace) + "│");
+                }
             }
 
             // Bottom border if is the end of the info
@@ -110,7 +110,7 @@ namespace AutoSync.CLI
             }
         }
 
-        public static void OptionsList(string optionsTitleMessage, Dictionary<string, Action> actionsList)
+        public static void ActionsList(string optionsTitleMessage, Dictionary<string, Action> actionsList)
         {
             CLISystem.ShowStylizedMessage(true, optionsTitleMessage, ConsoleColor.Yellow, ConsoleColor.Black);
             CLISystem.SkipRow();
@@ -133,6 +133,29 @@ namespace AutoSync.CLI
                     }
                 }
             }
+        }
+
+        public static object OptionsList(string optionsTitleMessage, Dictionary<string, object> optionsList)
+        {
+            CLISystem.ShowStylizedMessage(true, optionsTitleMessage, ConsoleColor.Yellow, ConsoleColor.Black);
+            CLISystem.SkipRow();
+
+            foreach (string optionName in optionsList.Keys)
+            {
+                Console.WriteLine(optionName);
+            }
+
+            string optionInput = Console.ReadLine() ?? "";
+
+            if (int.TryParse(optionInput, out int optionIDX))
+            {
+                if (optionsList.Values.ToList().Count >= optionIDX && optionIDX > 0)
+                {
+                    return optionsList.Values.ToList()[optionIDX - 1];
+                }
+            }
+
+            return null;
         }
 
         public static double FormatedDoubleValue(string value)

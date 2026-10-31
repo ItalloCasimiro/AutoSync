@@ -65,6 +65,8 @@ namespace AutoSync
                     AdminMenu.Initialize();
                     break;
                 case UserRoles.Operator:
+                    CLISystem.SkipRow();
+                    OperatorMenu.Initialize();
                     break;
                 case UserRoles.Driver:
                     CLISystem.SkipRow();

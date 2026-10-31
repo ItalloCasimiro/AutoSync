@@ -1,12 +1,18 @@
 [
-    {
-        "VehicleInfo": {
-            "ownerName": "Harry",
-            "licensePlate": "HTYL098",
-            "model": "BMW",
-            "year": 2018,
-            "capacity": 250.0,
-            "type": 0
-        }
-    }
+  {
+    "ownerName": "Harry",
+    "licensePlate": "HTYL098",
+    "model": "BMW",
+    "year": 2018,
+    "capacity": 250.0,
+    "type": 0
+  },
+  {
+    "ownerName": "Harry",
+    "licensePlate": "D7H12LB",
+    "model": "Audi",
+    "year": 2016,
+    "capacity": 200,
+    "type": 0
+  }
 ]

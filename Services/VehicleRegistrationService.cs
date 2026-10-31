@@ -10,7 +10,7 @@ namespace AutoSync.Services
 {
     public class Vehicle
     {
-        public enum Types { Passengers, Cargo, Race } //Like: Cars, Trucks and Formula 1
+        public enum Types { Passengers, Cargo } //Like: Cars and Trucks
 
         public UserData Owner;
         public string LicensePlate;
@@ -48,7 +48,6 @@ namespace AutoSync.Services
 
                 Console.WriteLine("1.Passengers");
                 Console.WriteLine("2.Cargo");
-                Console.WriteLine("3.Race");
 
                 string inputType = Console.ReadLine() ?? "";
 

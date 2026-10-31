@@ -1,11 +1,12 @@
 ﻿using AutoSync.CLI;
 using AutoSync.Interfaces;
 using AutoSync.Interfaces.Menus;
+using AutoSync.Services;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
-using AutoSync.Services;
 
 namespace AutoSync.Data
 {
@@ -23,6 +24,8 @@ namespace AutoSync.Data
         static string usersListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Users.json");
 
         public static UsersDatabase UsersList;
+
+        public static List<MaintenanceRequest> MaintenanceRequests;
 
         public static List<string> UsersIDs;
 
@@ -172,20 +175,208 @@ namespace AutoSync.Data
             // New access log
             vehiclesList.Add(new Dictionary<string, object>
             {
-                { "VehicleInfo", new Dictionary<string, object>
-                {
-                    { "ownerName", ownerName },
-                    { "licensePlate", vehicle.LicensePlate},
-                    { "model", vehicle.Model },
-                    { "year", vehicle.Year },
-                    { "capacity",vehicle.Capacity },
-                    { "type", vehicle.Type! }
-                } }
+                { "ownerName", ownerName },
+                { "licensePlate", vehicle.LicensePlate},
+                { "model", vehicle.Model },
+                { "year", vehicle.Year },
+                { "capacity",vehicle.Capacity },
+                { "type", vehicle.Type! }
             });
 
             // Update the database
             string updatedJson = JsonSerializer.Serialize(vehiclesList, options);
             File.WriteAllText(vehiclesListPath, updatedJson);
+        }
+
+        public static void RegistryNewMaintenanceRequest(string driverName, MaintenanceRequest request)
+        {
+            string maintenanceRequestListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "MaintenanceRequests.json");
+
+            if (!File.Exists(maintenanceRequestListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Maintenances Requests Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(maintenanceRequestListPath);
+
+            List<Dictionary<string, object>> requestsList;
+
+            // If has no requests, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                requestsList = new List<Dictionary<string, object>>();
+            }
+            else // If already has some request, load them
+            {
+                requestsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonString, options) ?? new List<Dictionary<string, object>>();
+            }
+
+            requestsList.Add(new Dictionary<string, object>
+            {
+                { "driverName", driverName },
+                { "description", request.Description },
+                { "type", request.Type! },
+                { "date", request.Date.ToString("dd/MM/yyyy")},
+                { "price", 0.0 },
+                { "status", request.Status! }
+            });
+
+            // Update the database
+            string updatedJson = JsonSerializer.Serialize(requestsList, options);
+            File.WriteAllText(maintenanceRequestListPath, updatedJson);
+        }
+
+        public static void UpdateMaintenanceRequest(MaintenanceRequest originalRequest, MaintenanceRequest updatedRequest)
+        {
+            string maintenanceRequestListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "MaintenanceRequests.json");
+
+            if (!File.Exists(maintenanceRequestListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Maintenances Requests Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(maintenanceRequestListPath);
+
+            List<Dictionary<string, object>> requestsList;
+
+            // If has no requests, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                requestsList = new List<Dictionary<string, object>>();
+            }
+            else // If already has some request, load them
+            {
+                requestsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonString, options) ?? new List<Dictionary<string, object>>();
+            }
+
+            Dictionary<string, object> OGRequestDic = new Dictionary<string, object>
+            {
+                { "driverName", originalRequest.DriverName },
+                { "description", originalRequest.Description },
+                { "type", (int)originalRequest.Type! },
+                { "date", originalRequest.Date.ToString("dd/MM/yyyy")},
+                { "price", originalRequest.Price },
+                { "status", (int)originalRequest.Status! }
+            };
+
+            Dictionary<string, object> updatedRequestDic = new Dictionary<string, object>
+            {
+                { "driverName", updatedRequest.DriverName },
+                { "description", updatedRequest.Description },
+                { "type", updatedRequest.Type! },
+                { "date", updatedRequest.Date.ToString("dd/MM/yyyy")},
+                { "price", updatedRequest.Price },
+                { "status", updatedRequest.Status! }
+            };
+
+            foreach (Dictionary<string, object> request in requestsList)
+            {
+                Dictionary<string, object> onListRequest = request;
+
+                onListRequest["driverName"] = ((JsonElement)request["driverName"]).GetString()!;
+                onListRequest["description"] = ((JsonElement)request["description"]).GetString()!;
+                onListRequest["type"] = ((JsonElement)request["type"]).GetInt32();
+                onListRequest["date"] = ((JsonElement)request["date"]).GetString()!;
+                onListRequest["price"] = ((JsonElement)request["price"]).GetDouble();
+                onListRequest["status"] = ((JsonElement)request["status"]).GetInt32();
+
+                bool foundRequest = true;
+
+                if (!Equals(onListRequest["driverName"], OGRequestDic["driverName"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else if (!Equals(onListRequest["description"], OGRequestDic["description"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else if (!Equals((MaintenanceRequest.Types)onListRequest["type"], (MaintenanceRequest.Types)OGRequestDic["type"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else if (!Equals(onListRequest["date"], OGRequestDic["date"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else if (!Equals(onListRequest["price"], OGRequestDic["price"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else if (!Equals((MaintenanceRequest.RequestStatus)onListRequest["status"], (MaintenanceRequest.RequestStatus)OGRequestDic["status"]))
+                {
+                    foundRequest = false;
+                    continue;
+                }
+
+                else
+                {
+                    OGRequestDic = request;
+                    break;
+                }
+            }
+
+            requestsList.Remove(OGRequestDic);
+            requestsList.Add(updatedRequestDic);
+
+            // Update the database
+            string updatedJson = JsonSerializer.Serialize(requestsList, options);
+            File.WriteAllText(maintenanceRequestListPath, updatedJson);
+        }
+
+        public static void LoadMaintenanceRequests()
+        {
+            string maintenanceRequestListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "MaintenanceRequests.json");
+
+            if (!File.Exists(maintenanceRequestListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Maintenances Requests Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(maintenanceRequestListPath);
+
+            // If has no logs, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                MaintenanceRequests = new List<MaintenanceRequest>();
+            }
+            else // If already has some log, load them
+            {
+                MaintenanceRequests = JsonSerializer.Deserialize<List<MaintenanceRequest>>(jsonString, options) ?? new List<MaintenanceRequest> ();
+            }
         }
     }
 }
