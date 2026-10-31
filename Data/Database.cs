@@ -25,6 +25,8 @@ namespace AutoSync.Data
 
         public static UsersDatabase UsersList;
 
+        public static List<Vehicle> vehicles;
+        public static List<CNH> CNHs;
         public static List<MaintenanceRequest> MaintenanceRequests;
 
         public static List<string> UsersIDs;
@@ -175,10 +177,11 @@ namespace AutoSync.Data
             // New access log
             vehiclesList.Add(new Dictionary<string, object>
             {
-                { "ownerName", ownerName },
+                { "owner", ownerName },
                 { "licensePlate", vehicle.LicensePlate},
                 { "model", vehicle.Model },
                 { "year", vehicle.Year },
+                { "maxVelocity", vehicle.MaxVelocity },
                 { "capacity",vehicle.Capacity },
                 { "type", vehicle.Type! }
             });
@@ -376,6 +379,36 @@ namespace AutoSync.Data
             else // If already has some log, load them
             {
                 MaintenanceRequests = JsonSerializer.Deserialize<List<MaintenanceRequest>>(jsonString, options) ?? new List<MaintenanceRequest> ();
+            }
+        }
+
+        public static void LoadVehicles()
+        {
+            string vehiclesListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Vehicles.json");
+
+            if (!File.Exists(vehiclesListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Vehicles Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(vehiclesListPath);
+
+            // If has no logs, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                vehicles = new List<Vehicle>();
+            }
+            else // If already has some log, load them
+            {
+                vehicles = JsonSerializer.Deserialize<List<Vehicle>>(jsonString, options) ?? new List<Vehicle>();
             }
         }
     }

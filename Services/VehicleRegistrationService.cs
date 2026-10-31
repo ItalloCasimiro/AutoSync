@@ -12,18 +12,20 @@ namespace AutoSync.Services
     {
         public enum Types { Passengers, Cargo } //Like: Cars and Trucks
 
-        public UserData Owner;
-        public string LicensePlate;
-        public string Model;
-        public int Year;
-        public double Capacity;
-        public Types? Type;
+        public string Owner { get; set; }
+        public string LicensePlate { get; set; }
+        public string Model { get; set; }
+        public int Year { get; set; }
+        public double MaxVelocity { get; set; }
+        public double Capacity { get; set; }
+        public Types? Type { get; set; }
 
         public Vehicle() { }
 
-        public Vehicle(UserData owner, string licensePlate, string model, int year, double capacity, Types type)
+        public Vehicle(string owner, double maxVelocity, string licensePlate, string model, int year, double capacity, Types type)
         {
             Owner = owner;
+            MaxVelocity = maxVelocity;
             LicensePlate = licensePlate;
             Model = model;
             Year = year;
@@ -138,35 +140,69 @@ namespace AutoSync.Services
             {
                 Console.WriteLine("What's the vehicle's year?");
 
-                int.TryParse(Console.ReadLine(), out newDriversVehicle.Year);
+                int.TryParse(Console.ReadLine(), out int inputYear);
 
-                if (newDriversVehicle.Year == 0)
+                if (inputYear == 0)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The informed year is not a valid number", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversVehicle.Year = 0;
                     CLISystem.SkipRow();
                 }
-                else if (newDriversVehicle.Year.ToString().Length != 4)
+                else if (inputYear.ToString().Length != 4)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The informed year is not valid", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversVehicle.Year = 0;
                     CLISystem.SkipRow();
                 }
-                else if (newDriversVehicle.Year < 1886)
+                else if (inputYear < 1886)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: Cars were invented in 1886, driver", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversVehicle.Year = 0;
                     CLISystem.SkipRow();
                 }
-                else if (newDriversVehicle.Year > DateTime.Now.Year)
+                else if (inputYear > DateTime.Now.Year)
                 {
                     CLISystem.ShowStylizedMessage(true, $"ERROR: We're currently in {DateTime.Now.Year}, driver", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversVehicle.Year = 0;
                     CLISystem.SkipRow();
                 }
+                else
+                {
+                    newDriversVehicle.Year = inputYear;
+                }
             } while (newDriversVehicle.Year == 0);
 
             CLISystem.SkipRow();
+
+            //Max Velocity
+            do
+            {
+                Console.WriteLine("What's the vehicle's max velocity?");
+
+                newDriversVehicle.MaxVelocity = CLISystem.FormatedDoubleValue(Console.ReadLine()!);
+
+                if (newDriversVehicle.MaxVelocity == 0.0)
+                {
+                    CLISystem.ShowStylizedMessage(true, "ERROR: The typed velocity is not a number", ConsoleColor.Black, ConsoleColor.Yellow);
+                    newDriversVehicle.MaxVelocity = 0.0;
+                    CLISystem.SkipRow();
+                }
+                else if (newDriversVehicle.Type != Vehicle.Types.Passengers && newDriversVehicle.MaxVelocity > 120.0)
+                {
+                    CLISystem.ShowStylizedMessage(true, "ERROR: The chosen vehicle type does not match with the velocity (Must be a \"Passengers\" vehicle)", ConsoleColor.Black, ConsoleColor.Yellow);
+                    CLISystem.SkipRow();
+
+                    if (CLISystem.YNQuestion("Want to", "Change the vehicle type to \"Passengers\""))
+                    {
+                        newDriversVehicle.Type = Vehicle.Types.Passengers;
+                    }
+                    else
+                    {
+                        newDriversVehicle.MaxVelocity = 0.0;
+                    }
+                    CLISystem.SkipRow();
+                }
+            } while (newDriversVehicle.MaxVelocity == 0.0);
 
             //Capacity
             do
@@ -198,20 +234,21 @@ namespace AutoSync.Services
                 }
             } while (newDriversVehicle.Capacity == 0.0);
 
-            newDriversVehicle.Owner = Program.loggedUser;
+            newDriversVehicle.Owner = Program.loggedUser.userID;
 
             CLISystem.SkipRow();
 
             CLISystem.CreateInfoBox(
                 $"{Program.loggedUser.userID} {newDriversVehicle.Model}", 
                 new string[] {
-                    $"Model {newDriversVehicle.Model}",
+                    $"Model: {newDriversVehicle.Model}",
                     $"Year: {newDriversVehicle.Year}",
                     $"License Plate: {newDriversVehicle.LicensePlate}", 
-                    $"Capacity: {newDriversVehicle.Capacity}",
+                    $"Max Velocity: {newDriversVehicle.MaxVelocity}km/h",
+                    $"Capacity: {newDriversVehicle.Capacity}kg",
                     $"Vehicle Type: {newDriversVehicle.Type}"
                 }, keepOpen: true);
-            CLISystem.CreateInfoBox("", new string[] { $"Owner: {newDriversVehicle.Owner.userID}", }, isContinuation: true);
+            CLISystem.CreateInfoBox("", new string[] { $"Owner: {newDriversVehicle.Owner}", }, isContinuation: true);
 
             CLISystem.SkipRow();
             
