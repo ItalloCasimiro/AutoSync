@@ -13,9 +13,6 @@ namespace AutoSync.Services
     {
         public static void AddNewDriver()
         {
-            //Path to the JSON with all the Users Examples (AutoSync/Data/Users.json)
-            string usersListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Users.json");
-
             CLISystem.SkipRow();
             Console.Write("All right, ");
             CLISystem.ShowStylizedMessage(true, "let's add a new driver!", ConsoleColor.Black, ConsoleColor.Yellow);
@@ -41,7 +38,7 @@ namespace AutoSync.Services
             }
 
             Console.Write("Insert a password for {0}: ", newDriverID);
-            string newDriverPassword = Console.ReadLine() ?? "";
+            string newDriverPassword = CLISystem.ReadHiddenLine() ?? "";
 
             if (newDriverPassword.Length < newDriverID.Length)
             {
@@ -59,51 +56,31 @@ namespace AutoSync.Services
                 return;
             }
 
-            if (!File.Exists(usersListPath))
-            {
-                CLISystem.SkipRow();
-                CLISystem.ShowStylizedMessage(true, "Users Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
-                return;
-            }
-
             CLISystem.SkipRow();
             CNH newDriversCNH = CNHRegistrationService.RegisterCNH(newDriverID);
 
-            if (!CLISystem.YNQuestion("Are you sure you want to", "add a new Driver"))
+            if (CLISystem.YNQuestion("Are you sure you want to", "add a new Driver"))
+            {
+                User newDriver = new User() { userID = newDriverID, password = newDriverPassword };
+
+                Database.RegistryNewDriver(newDriversCNH.FullName, newDriversCNH);
+
+                Database.RegistryNewUser(newDriver, UserRoles.Driver);
+
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, $"{newDriverID} added successfully to the company's list of drivers.", ConsoleColor.Black, ConsoleColor.Green);
+            }
+            else
             {
                 CLISystem.SkipRow();
                 CLISystem.ShowStylizedMessage(true, $"Registration action canceled.", ConsoleColor.Black, ConsoleColor.Yellow);
-
-                if (CLISystem.YNQuestion("Want to", "Back to menu"))
-                {
-                    Console.Clear();
-                    AdminMenu.Initialize();
-                }
-                return;
             }
 
-            //Load the Users JSON file and converts to a UserData class variable (A List for each role with all the users)
-            var jsonString = File.ReadAllText(usersListPath);
-            var options = new JsonSerializerOptions
+            if (CLISystem.YNQuestion("Want to", "Back to menu"))
             {
-                PropertyNameCaseInsensitive = true,
-                WriteIndented = true
-            };
-
-            var usersDatabase = JsonSerializer.Deserialize<UsersDatabase>(jsonString) ?? new UsersDatabase();
-
-            User newDriver = new User() { userID = newDriverID, password = newDriverPassword };
-
-            usersDatabase.Drivers.Add(newDriver);
-
-            string updatedJson = JsonSerializer.Serialize(usersDatabase, options);
-
-            File.WriteAllText(usersListPath, updatedJson);
-
-            Database.RegistryNewDriver(newDriversCNH.FullName, newDriversCNH);
-
-            CLISystem.SkipRow();
-            CLISystem.ShowStylizedMessage(true, $"{newDriverID} added successfully to the company's list of drivers.", ConsoleColor.Black, ConsoleColor.Green);
+                Console.Clear();
+                AdminMenu.Initialize();
+            }
         }
     }
 }

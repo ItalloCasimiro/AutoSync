@@ -14,7 +14,7 @@ namespace AutoSync.Services
     public record class MaintenanceRequest
     {
         public enum Types { Corrective, Preventive }
-        public enum RequestStatus { Waiting, Approved, Rejected, Canceled }
+        public enum RequestStatus { Waiting, Approved, Rejected}
 
         public string DriverName { get; set; }
         public string Description { get; set; }
@@ -244,6 +244,12 @@ namespace AutoSync.Services
             {
                 CLISystem.SkipRow();
                 CLISystem.ShowStylizedMessage(true, "You have no maintenance requests...", ConsoleColor.Black, ConsoleColor.Yellow);
+            }
+
+            if (CLISystem.YNQuestion("Want to", "Back to menu"))
+            {
+                Console.Clear();
+                DriverMenu.Initialize();
             }
         }
     }

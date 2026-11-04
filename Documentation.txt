@@ -12,19 +12,40 @@ Step By Step of AutoSync
 
 2. Admin
 - As an Admin, the system will load the Admin Menu (AutoSync/Interfaces/Menus/AdminMenu.cs), where you can:
-  1. Add a new Driver to the company;
+  - Add a new Driver to the company;
+  - Add a new Operator to the company;
 
 3. Operator
 - As an Operator, the system will load the Operator Menu (AutoSync/Interfaces/Menus/OperatorMenu.cs), where you can:
+	- Review maintenance requests (approve / reject);
+	- View Company Identification;
+	- Check Drivers CNHs;
 
 4 Driver
 - As a Driver, the system will load the Driver Menu (AutoSync/Interfaces/Menus/DriverMenu.cs), where you can:
+	- Register / View Vehicles;
+	- Request / View Maintenances;
 
 5. Database
-- At AutoSync/Data/Database.cs you can manage all your data, including list of users [...]
+- At AutoSync/Data/Database.cs you can manage all your data, including list of users, vehicles, drivers, operators and maintenances.
+	- Data:
+		- AccessLogs.json: When a user make a log in successfully, a new access log is registered with the user ID and the access date;
+		- Drivers.json: Stores all the Drivers CNHs at the company with full name; born date; registration number; category; validity and security code;
+		- Operators.json: Stores all the Operators IDs at the company (it's like a identification card, a public information), with full name; born date and Company ID;
+		- Users.json: Stores all the users authentication info (userID and password), separed by role (Drivers, Operators and Admins);
+		- Vehicles.json: Stores all the registered vehicles and its info;
 
-6. CLI System
+6. CLI and System
 - At AutoSync/CLI/CLISystem.cs you can call CLI methods to make something on the terminal, like:
   - Show a stylized message (With background and foreground color);
   - Create a Y/N question (Yes or No);
   - Skip a Row;
+  - Create a table / info box;
+  - Get and return date inputs;
+  - Request hidden input (secret character / "*");
+  - Create an actions or options list;
+- At AutoSync/CLI/System.cs we have methods that are used to work with datas correctly, like conversions;
+
+7. Services
+- At the Services/ folder, we have all the scripts to make a specific action, like register some new info and view them;
+- They're called by the users menus (DriverMenu.cs, OperatorMenu.cs and AdminMenu.cs);

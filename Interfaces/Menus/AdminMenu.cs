@@ -13,7 +13,8 @@ namespace AutoSync.Interfaces.Menus
     {
         public static Dictionary<string, Action> actions = new Dictionary<string, Action>()
         {
-            { "1. Add a New Driver to The Company", DriverRegistrationService.AddNewDriver }
+            { "1. Add a New Driver to The Company", DriverRegistrationService.AddNewDriver },
+            { "2. Add a New Operator to The Company", OperatorRegistrationService.AddNewOperator }
         };
 
         public static void Initialize()

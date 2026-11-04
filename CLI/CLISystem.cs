@@ -13,6 +13,40 @@ namespace AutoSync.CLI
             Console.WriteLine("");
         }
 
+        public static string ReadHiddenLine()
+        {
+            StringBuilder password = new StringBuilder();
+
+            while (true)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(intercept: true); //Do not display the typed info
+
+                //If the user press ENTER, submit the password
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    CLISystem.SkipRow();
+                    break;
+                }
+
+                //Erase a character
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (password.Length > 0)
+                    {
+                        password.Remove(password.Length - 1, 1);
+                        Console.Write("\b \b"); // back the cursor and erase the character
+                    }
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    password.Append(key.KeyChar);
+                    Console.Write('*');
+                }
+            }
+
+            return password.ToString();
+        }
+
         public static void ShowStylizedMessage(bool breakLine, string message, ConsoleColor backgroundColor = ConsoleColor.Black, ConsoleColor textColor = ConsoleColor.White)
         {
             Console.BackgroundColor = backgroundColor;
@@ -59,6 +93,11 @@ namespace AutoSync.CLI
             if (DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime data))
             {
                 return data;
+            }
+            else
+            {
+                SkipRow();
+                ShowStylizedMessage(true, "The typed date is invalid, remeber to use the format: day, month, year. Separate with \"/\" or \"-\"", ConsoleColor.Yellow, ConsoleColor.Black);
             }
 
             return DateTime.MinValue;

@@ -10,6 +10,13 @@ using System.Text.Json;
 
 namespace AutoSync.Data
 {
+    // Data for each User
+    public class User
+    {
+        public string userID { get; set; } = string.Empty;
+        public string password { get; set; } = string.Empty;
+    }
+
     // JSON User types Data Structure
     public class UsersDatabase
     {
@@ -28,6 +35,8 @@ namespace AutoSync.Data
         public static List<Vehicle> vehicles;
         public static List<CNH> CNHs;
         public static List<MaintenanceRequest> MaintenanceRequests;
+
+        public static List<OperatorIdentification> OperatorsIDs;
 
         public static List<string> UsersIDs;
 
@@ -92,9 +101,49 @@ namespace AutoSync.Data
             File.WriteAllText(accessLogsPath, updatedJson);
         }
 
+        public static void RegistryNewUser(User newUser, UserRoles role)
+        {
+            string usersListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Users.json");
+
+            if (!File.Exists(usersListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Users Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(usersListPath);
+
+            UsersList = JsonSerializer.Deserialize<UsersDatabase>(jsonString) ?? new UsersDatabase();
+
+            switch (role)
+            {
+                case UserRoles.Driver:
+                    UsersList.Drivers.Add(newUser);
+                    break;
+                case UserRoles.Operator:
+                    UsersList.Operators.Add(newUser);
+                    break;
+                case UserRoles.Admin:
+                    break;
+            }
+
+            // Update the database
+            string updatedJson = JsonSerializer.Serialize(UsersList, options);
+            File.WriteAllText(usersListPath, updatedJson);
+
+            LoadUsers();
+        }
+
         public static void RegistryNewDriver(string driverFullName, CNH driversCNH)
         {
-             string driversListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Drivers.json");
+            string driversListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Drivers.json");
 
             if (!File.Exists(driversListPath))
             {
@@ -126,21 +175,67 @@ namespace AutoSync.Data
             // New access log
             driversList.Add(new Dictionary<string, object>
             {
-                { "name", driverFullName },
-                { "CNH", new Dictionary<string, object>
-                {
-                    {"fullName", driverFullName},
-                    { "bornDate", driversCNH.BornDate.ToString("dd/MM/yyyy") },
-                    { "registrationNumber", driversCNH.RegistrationNumber },
-                    { "category", driversCNH.Category.ToString()! },
-                    { "validity", driversCNH.Validity.ToString("dd/MM/yyyy") },
-                    { "securityCode", driversCNH.SecurityCode }
-                } }
+                {"fullName", driverFullName},
+                { "bornDate", driversCNH.BornDate.ToString("dd/MM/yyyy") },
+                { "registrationNumber", driversCNH.RegistrationNumber },
+                { "category", driversCNH.Category! },
+                { "validity", driversCNH.Validity.ToString("dd/MM/yyyy") },
+                { "securityCode", driversCNH.SecurityCode }
             });
 
             // Update the database
             string updatedJson = JsonSerializer.Serialize(driversList, options);
             File.WriteAllText(driversListPath, updatedJson);
+
+            LoadUsers();
+            LoadDriversCNHs();
+        }
+
+        public static void RegistryNewOperator(OperatorIdentification newOperatorID)
+        {
+            string operatorsListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Operators.json");
+
+            if (!File.Exists(operatorsListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Operators Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(operatorsListPath);
+
+            List<Dictionary<string, object>> operatorsList;
+
+            // If has no logs, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                operatorsList = new List<Dictionary<string, object>>();
+            }
+            else // If already has some log, load them
+            {
+                operatorsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonString, options) ?? new List<Dictionary<string, object>>();
+            }
+
+            // New access log
+            operatorsList.Add(new Dictionary<string, object>
+            {
+                {"fullName", newOperatorID.FullName},
+                {"bornDate", newOperatorID.BornDate.ToString("dd/MM/yyyy") },
+                {"companyID", newOperatorID.CompanyID },
+            });
+
+            // Update the database
+            string updatedJson = JsonSerializer.Serialize(operatorsList, options);
+            File.WriteAllText(operatorsListPath, updatedJson);
+
+            LoadOperatorsCompanyIdentifications();
+            LoadUsers();
         }
         
         public static void RegistryNewVehicle(string ownerName, Vehicle vehicle)
@@ -189,6 +284,8 @@ namespace AutoSync.Data
             // Update the database
             string updatedJson = JsonSerializer.Serialize(vehiclesList, options);
             File.WriteAllText(vehiclesListPath, updatedJson);
+
+            LoadVehicles();
         }
 
         public static void RegistryNewMaintenanceRequest(string driverName, MaintenanceRequest request)
@@ -235,6 +332,8 @@ namespace AutoSync.Data
             // Update the database
             string updatedJson = JsonSerializer.Serialize(requestsList, options);
             File.WriteAllText(maintenanceRequestListPath, updatedJson);
+
+            LoadMaintenanceRequests();
         }
 
         public static void UpdateMaintenanceRequest(MaintenanceRequest originalRequest, MaintenanceRequest updatedRequest)
@@ -409,6 +508,66 @@ namespace AutoSync.Data
             else // If already has some log, load them
             {
                 vehicles = JsonSerializer.Deserialize<List<Vehicle>>(jsonString, options) ?? new List<Vehicle>();
+            }
+        }
+
+        public static void LoadOperatorsCompanyIdentifications()
+        {
+            string operatorsListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Operators.json");
+
+            if (!File.Exists(operatorsListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Operators Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(operatorsListPath);
+
+            // If has no logs, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                OperatorsIDs = new List<OperatorIdentification>();
+            }
+            else // If already has some log, load them
+            {
+                OperatorsIDs = JsonSerializer.Deserialize<List<OperatorIdentification>>(jsonString, options) ?? new List<OperatorIdentification>();
+            }
+        }
+
+        public static void LoadDriversCNHs()
+        {
+            string driversCNHsListPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../Data", "Drivers.json");
+
+            if (!File.Exists(driversCNHsListPath))
+            {
+                CLISystem.SkipRow();
+                CLISystem.ShowStylizedMessage(true, "Drivers Database Not Found...", ConsoleColor.Black, ConsoleColor.Red);
+                return;
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            string jsonString = File.ReadAllText(driversCNHsListPath);
+
+            // If has no logs, create a new list
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                CNHs = new List<CNH>();
+            }
+            else // If already has some log, load them
+            {
+                CNHs = JsonSerializer.Deserialize<List<CNH>>(jsonString, options) ?? new List<CNH>();
             }
         }
     }

@@ -7,23 +7,5 @@
     "maxVelocity": 300.0,
     "capacity": 250.0,
     "type": 0
-  },
-  {
-    "owner": "Harry",
-    "licensePlate": "D7H12LB",
-    "model": "Audi",
-    "year": 2016,
-    "maxVelocity": 320.0,
-    "capacity": 200,
-    "type": 0
-  },
-  {
-    "owner": "Harry",
-    "licensePlate": "VBM906L",
-    "model": "Chevrolet",
-    "year": 2017,
-    "maxVelocity": 120,
-    "capacity": 560,
-    "type": 1
   }
 ]

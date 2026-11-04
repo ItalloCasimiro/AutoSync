@@ -1,8 +1,10 @@
 ﻿using AutoSync.CLI;
+using AutoSync.Data;
 using AutoSync.Interfaces.Menus;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks.Dataflow;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -12,12 +14,12 @@ namespace AutoSync.Services
     {
         public enum Categories { A, B, C, D, E, ACC }
 
-        public string FullName;
-        public DateTime BornDate;
-        public int RegistrationNumber;
-        public Categories? Category;
-        public DateTime Validity;
-        public int SecurityCode;
+        public string FullName { get; set; }
+        [JsonConverter(typeof(DateConverter))] public DateTime BornDate { get; set; }
+        public int RegistrationNumber { get; set; }
+        public Categories? Category { get; set; }
+        [JsonConverter(typeof(DateConverter))] public DateTime Validity { get; set; }
+        public int SecurityCode { get; set; }
 
         public CNH(string fullName, DateTime bornDate, int registrationNumber, Categories category, DateTime validity, int securityCode)
         {
@@ -50,15 +52,44 @@ namespace AutoSync.Services
 
                 if (newDriversCNH.FullName == "")
                 {
-                    CLISystem.ShowStylizedMessage(true, "ERROR: The name can't be empty", ConsoleColor.Black, ConsoleColor.Yellow);
                     CLISystem.SkipRow();
+                    CLISystem.ShowStylizedMessage(true, "ERROR: The name can't be empty", ConsoleColor.Black, ConsoleColor.Yellow);
                 }
 
                 else if (newDriversCNH.FullName.Length < 4)
                 {
+                    CLISystem.SkipRow();
                     CLISystem.ShowStylizedMessage(true, "ERROR: Last name is too short", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversCNH.FullName = "";
+                }
+
+                else if (newDriversCNH.FullName.Split(" ").Length < 2)
+                {
                     CLISystem.SkipRow();
+                    CLISystem.ShowStylizedMessage(true, "Error: Insert your full name.", ConsoleColor.Black, ConsoleColor.Yellow);
+                    newDriversCNH.FullName = "";
+                }
+
+                foreach (string name in newDriversCNH.FullName.Split(" "))
+                {
+                    if (name.Length < 3)
+                    {
+                        CLISystem.SkipRow();
+                        CLISystem.ShowStylizedMessage(true, "Error: The typed name is too short.", ConsoleColor.Black, ConsoleColor.Yellow);
+                        newDriversCNH.FullName = "";
+                        break;
+                    }
+                }
+
+                foreach (CNH CNHDoc in Database.CNHs)
+                {
+                    if (newDriversCNH.FullName == CNHDoc.FullName)
+                    {
+                        CLISystem.SkipRow();
+                        CLISystem.ShowStylizedMessage(true, "Error: Already existent driver.", ConsoleColor.Black, ConsoleColor.Yellow);
+                        newDriversCNH.FullName = "";
+                        break;
+                    }
                 }
             } while (newDriversCNH.FullName == "");
 
@@ -104,26 +135,42 @@ namespace AutoSync.Services
             do
             {
                 Console.WriteLine($"What's the driver's CNH Registration Number?");
-                string inputRegistrationNumber = Console.ReadLine() ?? "";
+                int.TryParse(Console.ReadLine() ?? "", out int inputRegistrationNumber);
 
-                if (!int.TryParse(inputRegistrationNumber, out newDriversCNH.RegistrationNumber))
+                if (inputRegistrationNumber == 0)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The typed Registration Number isn't a number", ConsoleColor.Black, ConsoleColor.Yellow);
                     CLISystem.SkipRow();
                 }
 
-                else if (newDriversCNH.RegistrationNumber < 0)
+                else if (inputRegistrationNumber < 0)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The Registration Number can't be negative", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversCNH.RegistrationNumber = 0;
                     CLISystem.SkipRow();
                 }
 
-                else if (newDriversCNH.RegistrationNumber.ToString().Length != 9)
+                else if (inputRegistrationNumber.ToString().Length != 9)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: Missing / Addictional digits in the Registration Number (must be 9)", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversCNH.RegistrationNumber = 0;
                     CLISystem.SkipRow();
+                }
+
+                else
+                {
+                    newDriversCNH.RegistrationNumber = inputRegistrationNumber;
+                }
+
+                foreach (CNH CNHDoc in Database.CNHs)
+                {
+                    if (newDriversCNH.RegistrationNumber == CNHDoc.RegistrationNumber)
+                    {
+                        CLISystem.SkipRow();
+                        CLISystem.ShowStylizedMessage(true, "Error: Already existent Registration Number.", ConsoleColor.Black, ConsoleColor.Yellow);
+                        newDriversCNH.RegistrationNumber = 0;
+                        break;
+                    }
                 }
 
             } while (newDriversCNH.RegistrationNumber == 0);
@@ -191,26 +238,31 @@ namespace AutoSync.Services
             do
             {
                 Console.WriteLine($"What's the driver's CNH Security Code?");
-                string inputCode = Console.ReadLine() ?? "";
+                int.TryParse(Console.ReadLine() ?? "", out int inputCode);
 
-                if (!int.TryParse(inputCode, out newDriversCNH.SecurityCode))
+                if (inputCode == 0)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The typed code isn't a number", ConsoleColor.Black, ConsoleColor.Yellow);
                     CLISystem.SkipRow();
                 }
 
-                else if (newDriversCNH.SecurityCode < 0)
+                else if (inputCode < 0)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: The Security Code can't be negative", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversCNH.SecurityCode = 0;
                     CLISystem.SkipRow();
                 }
 
-                else if (newDriversCNH.SecurityCode.ToString().Length != 3)
+                else if (inputCode.ToString().Length != 3)
                 {
                     CLISystem.ShowStylizedMessage(true, "ERROR: Missing / Addictional digits in the Security Code (must be 3)", ConsoleColor.Black, ConsoleColor.Yellow);
                     newDriversCNH.SecurityCode = 0;
                     CLISystem.SkipRow();
+                }
+
+                else
+                {
+                    newDriversCNH.SecurityCode = inputCode;
                 }
 
             } while (newDriversCNH.SecurityCode == 0);

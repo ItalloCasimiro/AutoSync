@@ -1,13 +1,10 @@
 [
-    {
-        "name": "Harry Jenkins", 
-        "CNH": {
-            "fullName": "Harry Jenkins",
-            "bornDate": "09/09/2005",
-            "registrationNumber": 756453789,
-            "category": 2,
-            "validity": "06/03/2028",
-            "securityCode": 567
-        }
-    }
+  {
+    "fullName": "Harry Jenkins",
+    "bornDate": "09/09/2005",
+    "registrationNumber": 756453789,
+    "category": 2,
+    "validity": "06/03/2028",
+    "securityCode": 567
+  }
 ]

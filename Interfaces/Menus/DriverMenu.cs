@@ -26,11 +26,11 @@ namespace AutoSync.Interfaces.Menus
         {
             Database.LoadVehicles();
 
-            int maintenanceIDX = 0;
+            int vehicleIDX = 0;
 
-            for (maintenanceIDX = 0; maintenanceIDX < Database.vehicles.Count; maintenanceIDX++)
+            for (vehicleIDX = 0; vehicleIDX < Database.vehicles.Count; vehicleIDX++)
             {
-                Vehicle vehicle = Database.vehicles[maintenanceIDX];
+                Vehicle vehicle = Database.vehicles[vehicleIDX];
 
                 if (vehicle.Owner == Program.loggedUser.userID)
                 {
@@ -48,7 +48,7 @@ namespace AutoSync.Interfaces.Menus
                 }
             }
 
-            if (maintenanceIDX == 0)
+            if (vehicleIDX == 0)
             {
                 CLISystem.SkipRow();
                 CLISystem.ShowStylizedMessage(true, "You have no maintenance requests...", ConsoleColor.Black, ConsoleColor.Yellow);
